@@ -1,18 +1,31 @@
-FROM python:3.10
+FROM python:3.10-slim
 
-# Enable ffmpeg
-RUN apt-get update && apt-get install -y ffmpeg
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install CUDA 11.8 compatible torch
-RUN pip install --upgrade pip \
- && pip install torch==2.1.0+cu118 torchvision==0.16.0+cu118 torchaudio==2.1.0 --extra-index-url https://download.pytorch.org/whl/cu118
-
-# Install remaining deps
+# Install Python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
+# Copy application code
 COPY . .
 
-CMD ["uvicorn", "whisper_api:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "120", "--lifespan", "on"]
+# Create a non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Run the application
+CMD ["uvicorn", "whisper_api:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "120"]
