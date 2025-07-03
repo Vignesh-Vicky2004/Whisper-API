@@ -5,11 +5,11 @@ RUN apt-get update && apt-get install -y ffmpeg
 
 WORKDIR /app
 
-# Preinstall correct torch version manually
+# Install CUDA 11.8 compatible torch
 RUN pip install --upgrade pip \
  && pip install torch==2.1.0+cu118 torchvision==0.16.0+cu118 torchaudio==2.1.0 --extra-index-url https://download.pytorch.org/whl/cu118
 
-# Now install the rest of the dependencies
+# Install remaining deps
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
