@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 app = FastAPI()
 
 # Load the model once globally
-model = whisper.load_model("large")  # You can use "base", "medium", etc., if GPU/space is limited
+model = whisper.load_model("medium")  # You can use "base", "medium", etc., if GPU/space is limited
 
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
