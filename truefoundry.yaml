@@ -1,0 +1,36 @@
+name: whisper-api
+type: service
+image:
+  build_source:
+    type: local
+    local_build:
+      dockerfile: Dockerfile
+ports:
+  - port: 8000
+    host: 0.0.0.0
+resources:
+  memory: 4Gi
+  cpu: 2000m
+  ephemeral_storage: 10Gi
+env:
+  - name: PYTHONUNBUFFERED
+    value: "1"
+replicas:
+  min: 1
+  max: 3
+health_check:
+  http_get:
+    path: /health
+    port: 8000
+  initial_delay_seconds: 60
+  period_seconds: 10
+  timeout_seconds: 5
+  failure_threshold: 3
+readiness_probe:
+  http_get:
+    path: /ready
+    port: 8000
+  initial_delay_seconds: 30
+  period_seconds: 5
+  timeout_seconds: 3
+  failure_threshold: 5
